@@ -1,0 +1,10 @@
+@font-face {
+   font-family: '苏新诗柳楷简';
+   font-display: swap;
+   src: url('苏新诗柳楷简/font.ttf');
+}
+@font-face {
+   font-family: 'Deng';
+   font-display: swap;
+   src: url('Deng/font.ttf');
+}
