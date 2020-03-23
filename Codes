@@ -1,0 +1,103 @@
+import requests
+import string
+import urllib.request
+import csv
+import re
+from bs4 import BeautifulSoup
+import pandas as pd
+from bs4 import BeautifulSoup
+from distutils.filelist import findall
+#获取每一页的链接
+with open ('D:\python\判决书网址s.txt','r') as f:
+    lines = f.readlines()
+    first_line = lines[49]#①
+    r = requests.get(first_line)
+    data = r.text
+    link_list =re.findall(r"(?<=href=\").+?(?=\")|(?<=href=\').+?(?=\')" ,data)
+f1 = open("D:\python\Drafts\page50a.txt",'w')#②
+for url in link_list[24:74]:
+    f1.write('https://www.chinacourt.org'+url+'\n')
+f1.close()
+
+path = "D:\python\公告网1-50页内的url" #文件夹目录
+files= os.listdir(path) #得到文件夹下的所有文件名称
+s = []
+for file in files: #遍历文件夹
+     if not os.path.isdir(file): #判断是否是文件夹，不是文件夹才打开
+          f = open(path+"/"+file); #打开文件
+          iter_f = iter(f); #创建迭代器
+          mystr = ""
+          for line in iter_f: #遍历文件，一行行遍历，读取文本
+              mystr = mystr + line 
+          s.append(mystr) #每个文件的文本存到list中
+d = str(s).split('\n')
+e = str(d).split('\\n')
+dd = str(e).replace('\\','').replace('[','').replace(']','').replace('"','').replace("'",'').replace(',','\n').replace(' ','')
+f1 = open("D:\python\Drafts\pageall.txt",'w')
+f1.write(dd)
+f1.close()
+res_list = []#去除重复的链接
+f2 = open('D:\python\Drafts\pageall.txt','r')#③
+res_dup = []
+index = 0
+file_dul = open('D:\python\Drafts\page50.txt', 'w')#④
+for line in f2.readlines():
+ index = index + 1
+ if line in res_list:
+  temp_str = ""
+  temp_line = ''.join(line)
+  temp_str = temp_str+temp_line
+  file_dul.write(temp_str); 
+ else:
+  res_list.append(line)
+
+res_list = []#去除重复的链接
+f2 = open('D:\python\Drafts\page50a.txt','r')#③
+res_dup = []
+index = 0
+file_dul = open('D:\python\Drafts\page50.txt', 'w')#④
+for line in f2.readlines():
+ index = index + 1
+ if line in res_list:
+  temp_str = ""
+  temp_line = ''.join(line)
+  temp_str = temp_str+temp_line
+  file_dul.write(temp_str); 
+ else:
+  res_list.append(line)
+  
+  with open ('D:\python\公告网1-50页内的url\page0.txt','r') as f:#获取内容
+        lines = f.readlines()
+        first_line = lines[0]#第一个文本的第一个网址 
+        r = requests.get(first_line)
+        data = r.text
+        soup = BeautifulSoup(data,'html.parser')
+        a = soup.find_all('div',attrs={'class':'dsrnr'})
+        b = soup.find_all('div',attrs={'class':'affiliation'})
+        company_contents = str(a).replace('<div class="dsrnr">','').replace('</div>','').replace('[','').replace(']','').replace(' ','')
+        source_time = str(b).replace('<div class="affiliation">','').replace('</div>','').replace('<br/>','').replace('[','').replace(']','').replace(' ','')
+        company = list(company_contents.split(',',1))[0]
+        contents = list(company_contents.split(',',1))[1]
+        source = list(source_time.split('人民法院报刊登版面：'))[0]
+        time  = list(source_time.split('刊登日期：'))[1]#内容分类完成
+        
+with open (r'D:\python\Drafts\pageall.txt','r') as f:#获取内容
+        lines = f.readlines()
+        company=[]
+        contents=[]
+        source=[]
+        time=[]
+        for line in lines:
+            r=requests.get(line)
+            data = r.text
+            soup = BeautifulSoup(data,'html.parser')
+            a = soup.find_all('div',attrs={'class':'dsrnr'})
+            b = soup.find_all('div',attrs={'class':'affiliation'})
+            company_contents = str(a).replace('<div class="dsrnr">','').replace('</div>','').replace('[','').replace(']','').replace(' ','')
+            source_time = str(b).replace('<div class="affiliation">','').replace('</div>','').replace('<br/>','').replace('[','').replace(']','').replace(' ','')
+            company.append(company_contents.split(',',1)[0])
+            contents.append(company_contents.split(',',1)[1])
+            source.append(source_time.split('人民法院报刊登版面：')[0])
+            time.append(source_time.split('刊登日期：')[1])#内容分类完成
+        df = pd.DataFrame({'公司':company,'公告内容':contents,'来源':source,'日期':time})
+        df.to_excel(r'D:\python\pageall.xlsx')#保存到excel
