@@ -1,0 +1,61 @@
+!pip install selenium
+from selenium import webdriver
+import requests
+import string
+import urllib.request
+import csv
+import re
+import time
+from bs4 import BeautifulSoup
+browser = webdriver.Chrome()
+browser.get('http://pccz.court.gov.cn/pcajxxw/pcws/ws')
+#browser.find_element_by_css_selector('#kkpager_btn_go_input').click()
+#input_str.clear()
+i = 1
+while i < 220:
+    input_str = browser.find_element_by_css_selector('#kkpager_btn_go_input')
+    input_str.send_keys()
+    loc = '#kkpager_btn_go'
+    browser.find_element_by_css_selector(loc).click()
+    source1 = browser.page_source
+    link_list =re.findall(r"(?<=href=\").+?(?=\")|(?<=href=\').+?(?=\')" ,source1)
+    f1 = open("D:\python\重组网里的链接2.txt",'a+')
+    for url in link_list[34:44]:
+        f1.write('http://pccz.court.gov.cn/pcajxxw/'+url+'\n')
+    f1.close()
+    time.sleep(1)
+    #browser.close()
+    i+=1
+
+browser = webdriver.Chrome()
+with open (r'D:\python\重组网里的链接.txt','r') as f:
+    lines = f.readlines()
+    company=[]
+    contents=[]
+    source=[]
+    time0=[]
+    type0 = []
+    for line in lines:
+        browser.get(line)
+        try:
+            type1 = browser.find_element_by_css_selector('#cbt')
+            type2 = type1.text
+            time1 = browser.find_element_by_css_selector('#detail_content > div.detail_top > div > table > tbody > tr:nth-child(1) > td:nth-child(1)').text
+            courts = browser.find_element_by_css_selector('#detail_content > div.detail_top > div > table > tbody > tr:nth-child(1) > td:nth-child(2)').text
+            contents1 = browser.find_element_by_css_selector('#printDiv').text
+            b1="有限公司"
+            c1='申请人'
+            companies = str(contents1[contents1.index(c1):contents1.index(b1)]+b1)
+            company.append(companies)
+            contents.append(contents1)
+            source.append(courts)
+            time0.append(time1)
+            type0.append(type2)
+            time.sleep(3)
+        except Exception as e :
+            time.sleep(6)
+            pass
+        continue
+        df = pd.DataFrame({'日期':time0,'类型':type0,'来源':source,'公司':company,'公告内容':contents})
+        df.to_excel(r'D:\python\重组网信息.xlsx')
+        browser.close()
